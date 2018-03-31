@@ -46,7 +46,18 @@ void naive_rotate(int dim, pixel *src, pixel *dst)
 char rotate_descr[] = "rotate: Current working version";
 void rotate(int dim, pixel *src, pixel *dst) 
 {
-    naive_rotate(dim, src, dst);
+	int i,j,k ;
+    	for (i = 0; i < dim; i = i + 16){
+        	for (j = 0; j < dim; j++){
+            		for(k = 0; k < 16; k++){
+                   		dst[RIDX(dim-1-j, i+k, dim)] = src[RIDX(i+k, j, dim)];
+
+             		}
+
+        	}
+
+    	}
+
 }
 
 /*********************************************************************
@@ -162,7 +173,7 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
 char smooth_descr[] = "smooth: Current working version";
 void smooth(int dim, pixel *src, pixel *dst) 
 {
-    naive_smooth(dim, src, dst);
+
 }
 
 
