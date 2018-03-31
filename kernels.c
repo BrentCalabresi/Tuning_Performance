@@ -173,6 +173,37 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
 char smooth_descr[] = "smooth: Current working version";
 void smooth(int dim, pixel *src, pixel *dst) 
 {
+	int j = 0;
+    int i = 0;
+
+    for (j = 0; j < dim; j+=16)
+    {
+
+        for (i = 0;  i< dim; i++)
+        {
+
+        dst[RIDX(j, i, dim)] = avg(dim, j, i, src);
+        dst[RIDX(j+1, i, dim)] = avg(dim, j+1, i, src);
+        dst[RIDX(j+2, i, dim)] = avg(dim, j+2, i, src);
+        dst[RIDX(j+3, i, dim)] = avg(dim, j+3, i, src);
+        dst[RIDX(j+4, i, dim)] = avg(dim, j+4, i, src);
+        dst[RIDX(j+5, i, dim)] = avg(dim, j+5, i, src);
+        dst[RIDX(j+6, i, dim)] = avg(dim, j+6, i, src);
+        dst[RIDX(j+7, i, dim)] = avg(dim, j+7, i, src);
+        dst[RIDX(j+8, i, dim)] = avg(dim, j+8, i, src);
+        dst[RIDX(j+9, i, dim)] = avg(dim, j+9, i, src);
+        dst[RIDX(j+10, i, dim)] = avg(dim, j+10, i, src);
+        dst[RIDX(j+11, i, dim)] = avg(dim, j+11, i, src);
+        dst[RIDX(j+12, i, dim)] = avg(dim, j+12, i, src);
+        dst[RIDX(j+13, i, dim)] = avg(dim, j+13, i, src);
+        dst[RIDX(j+14, i, dim)] = avg(dim, j+14, i, src);
+        dst[RIDX(j+15, i, dim)] = avg(dim, j+15, i, src);
+
+
+        }
+
+
+    }
 
 }
 
