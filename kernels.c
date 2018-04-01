@@ -166,16 +166,13 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
 	    dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
 }
 
-/*
- * smooth - Your current working version of smooth. 
- * IMPORTANT: This is the version you will be graded on
- */
-char smooth_descr[] = "smooth: Current working version";
-void smooth(int dim, pixel *src, pixel *dst) 
+char smooth_descr_Initial[] = "smooth: Initial Attempt";
+void smooth_Initial(int dim, pixel *src, pixel *dst)
 {
-	int j = 0;
+    int j = 0;
     int i = 0;
 
+    //Loop unroll x16 - appears to be rather.. ineffective :(
     for (j = 0; j < dim; j+=16)
     {
 
@@ -198,15 +195,110 @@ void smooth(int dim, pixel *src, pixel *dst)
         dst[RIDX(j+13, i, dim)] = avg(dim, j+13, i, src);
         dst[RIDX(j+14, i, dim)] = avg(dim, j+14, i, src);
         dst[RIDX(j+15, i, dim)] = avg(dim, j+15, i, src);
-
-
         }
-
-
     }
-
 }
 
+
+char smooth_descr_Best[] = "smooth: Best working version";
+void smooth_Best(int dim, pixel *src, pixel *dst) 
+{
+int i, j, k, p;
+
+    //Split the image into zones, top left corner, top right, bottom left, etc.
+
+	
+    /*CORNERS ----------------------------------------------------------------
+    *
+    * To get the avg of each corner we add the 2x2 matricies found in
+    * each corner, then store the avg in the corner-most pixel
+    */
+   
+    //Top Left Corner	
+    dst[0].red =   (src[0].red + src[1].red + src[dim].red + src[dim+1].red) 	       >> 2;
+    dst[0].blue =  (src[0].blue + src[1].blue + src[dim].blue + src[dim+1].blue)       >> 2;
+    dst[0].green = (src[0].green + src[1].green + src[dim].green + src[dim + 1].green) >> 2;
+    
+    //Top Right Corner
+    dst[dim-1].red =   (src[dim-1].red + src[dim-2].red + src[dim*2-1].red + src[dim*2-2].red) 	       >> 2;
+    dst[dim-1].blue =  (src[dim-1].blue + src[dim-2].blue + src[dim*2-1].blue + src[dim*2-2].blue)     >> 2;
+    dst[dim-1].green = (src[dim-1].green + src[dim-2].green + src[dim*2-1].green + src[dim*2-2].green) >> 2;
+    
+    //Bottom Left Corner
+    dst[dim*(dim-1)].red =   (src[dim*(dim-1)].red + src[dim*(dim-1)+1].red + src[dim*(dim-2)].red + src[dim*(dim-2)+1].red)         >> 2;
+    dst[dim*(dim-1)].blue =  (src[dim*(dim-1)].blue + src[dim*(dim-1)+1].blue + src[dim*(dim-2)].blue + src[dim*(dim-2)+1].blue)     >> 2;
+    dst[dim*(dim-1)].green = (src[dim*(dim-1)].green + src[dim*(dim-1)+1].green + src[dim*(dim-2)].green + src[dim*(dim-2)+1].green) >> 2;
+    
+    //Bottom Right Corner
+    dst[dim*dim-1].red = (src[dim*dim-1].red + src[dim*dim-2].red + src[dim*(dim-1)-1].red + src[dim*(dim-1)-2].red)           >> 2;
+    dst[dim*dim-1].blue = (src[dim*dim-1].blue + src[dim*dim-2].blue + src[dim*(dim-1)-1].blue + src[dim*(dim-1)-2].blue)      >> 2;
+    dst[dim*dim-1].green = (src[dim*dim-1].green + src[dim*dim-2].green + src[dim*(dim-1)-1].green + src[dim*(dim-1)-2].green) >> 2;
+    
+
+    /*EDGES ----------------------------------------------------------------
+    *
+    * Here, we iterate down the length of each edge and 
+    * store the avg's for each point
+    */
+
+    //Top Side
+    for (j = 1; j < dim - 1; j++) 
+    {
+        dst[j].red =   (src[j].red + src[j-1].red + src[j+1].red + src[j+dim].red + src[j+1+dim].red + src[j-1+dim].red) 		/ 6;
+        dst[j].blue =  (src[j].blue + src[j-1].blue + src[j+1].blue + src[j+dim].blue + src[j+1+dim].blue + src[j-1+dim].blue) 		/ 6;
+        dst[j].green = (src[j].green + src[j-1].green + src[j+1].green + src[j+dim].green + src[j+1+dim].green + src[j-1+dim].green) 	/ 6;
+    }
+
+    //Bottom Side
+    for (j = dim * (dim - 1) + 1; j < dim * dim - 1; j++) 
+    {
+        dst[j].red =   (src[j].red + src[j-1].red + src[j+1].red + src[j-dim].red + src[j+1-dim].red + src[j-1-dim].red) 		/ 6;
+        dst[j].blue =  (src[j].blue + src[j-1].blue + src[j+1].blue + src[j-dim].blue + src[j+1-dim].blue + src[j-1-dim].blue) 		/ 6;
+        dst[j].green = (src[j].green + src[j-1].green + src[j+1].green + src[j-dim].green + src[j+1-dim].green + src[j-1-dim].green) 	/ 6;
+    }
+    //Left Hand Side
+    for (j = dim; j < dim * (dim - 1); j += dim) 
+    {
+        dst[j].red =   (src[j].red + src[j-dim].red + src[j+1].red + src[j+dim].red + src[j+1+dim].red + src[j-dim+1].red) 		/ 6;
+        dst[j].blue =  (src[j].blue + src[j-dim].blue + src[j+1].blue + src[j+dim].blue + src[j+1+dim].blue + src[j-dim+1].blue) 	/ 6;
+        dst[j].green = (src[j].green + src[j-dim].green + src[j+1].green + src[j+dim].green + src[j+1+dim].green + src[j-dim+1].green) 	/ 6;
+    }
+    //Right Hand Side
+    for (j = dim + dim - 1; j < dim * dim - 1; j += dim) 
+    {
+        dst[j].red =   (src[j].red + src[j-1].red + src[j-dim].red + src[j+dim].red + src[j-dim-1].red + src[j-1+dim].red) 		/ 6;
+        dst[j].blue =  (src[j].blue + src[j-1].blue + src[j-dim].blue + src[j+dim].blue + src[j-dim-1].blue + src[j-1+dim].blue) 	/ 6;
+        dst[j].green = (src[j].green + src[j-1].green + src[j-dim].green + src[j+dim].green + src[j-dim-1].green + src[j-1+dim].green) 	/ 6;
+    }
+
+   /*MIDDLE ----------------------------------
+   * For the inner part of the matrix, we hard code the averages, very similar to the original naive system
+   * But, since we handled the outer edges and corners already, less work is required and therefore less CPE's!
+   */
+    p = dim;
+    for (i = 1; i < dim - 1; i++)
+    {
+        for (j = 1; j < dim - 1; j++)
+        {
+            k = p + j;
+            dst[k].red =   (src[k].red + src[k-1].red + src[k+1].red + src[k-dim].red + src[k-dim-1].red + src[k-dim+1].red + src[k+dim].red + src[k+dim+1].red + src[k+dim-1].red) 			/ 9;
+            dst[k].green = (src[k].green + src[k-1].green + src[k+1].green + src[k-dim].green + src[k-dim-1].green + src[k-dim+1].green + src[k+dim].green + src[k+dim+1].green + src[k+dim-1].green) 	/ 9;
+            dst[k].blue =  (src[k].blue + src[k-1].blue + src[k+1].blue + src[k-dim].blue + src[k-dim-1].blue + src[k-dim+1].blue + src[k+dim].blue + src[k+dim+1].blue + src[k+dim-1].blue) 		/ 9;
+        }
+        p += dim;
+    }
+}
+
+
+/*
+ * smooth - Your current working version of smooth. 
+ * IMPORTANT: This is the version you will be graded on
+ */
+char smooth_descr[] = "smooth: Current working version";
+void smooth(int dim, pixel *src, pixel *dst) 
+{
+ smooth_Best(dim, src, dst);
+}
 
 /********************************************************************* 
  * register_smooth_functions - Register all of your different versions
@@ -219,6 +311,8 @@ void smooth(int dim, pixel *src, pixel *dst)
 void register_smooth_functions() {
     add_smooth_function(&smooth, smooth_descr);
     add_smooth_function(&naive_smooth, naive_smooth_descr);
+    add_smooth_function(&smooth_Best,smooth_descr_Best);
+    add_smooth_function(&smooth_Initial,smooth_descr_Initial);
     /* ... Register additional test functions here */
 }
 
